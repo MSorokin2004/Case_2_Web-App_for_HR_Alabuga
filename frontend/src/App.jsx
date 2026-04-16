@@ -3,6 +3,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import CandidateProfile from './components/CandidateProfile';
 import HRDashboard from './components/HRDashboard';
+import ResumeDetail from './components/ResumeDetail';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
@@ -23,6 +24,11 @@ function App() {
         <Route path="/dashboard" element={
           <PrivateRoute allowedRoles={['hr', 'manager']}>
             <HRDashboard />
+          </PrivateRoute>
+        } />
+        <Route path="/resume/:id" element={
+          <PrivateRoute allowedRoles={['hr', 'manager']}>
+            <ResumeDetail />
           </PrivateRoute>
         } />
       </Routes>

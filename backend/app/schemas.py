@@ -100,6 +100,7 @@ class ResumeOut(ResumeBase):
     experiences: List[WorkExperienceOut] = []
     educations: List[EducationOut] = []
     documents: List[DocumentOut] = []
+    in_basket: bool = False
 
     class Config:
         from_attributes = True
@@ -148,3 +149,6 @@ class ReviewOut(BaseModel):
     created_at: datetime
     class Config:
         from_attributes = True
+
+class ResumeDetailOut(ResumeOut):
+    reviews: List[ReviewOut] = []

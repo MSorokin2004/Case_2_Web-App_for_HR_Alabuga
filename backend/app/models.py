@@ -32,6 +32,7 @@ class Resume(Base):
     status = Column(String, default="new")  # new, reviewed, interview, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    in_basket = Column(Boolean, default=False)
 
     candidate = relationship("User", backref="resumes")
     documents = relationship("Document", back_populates="resume")

@@ -4,6 +4,7 @@ from typing import List
 from app import models, schemas, auth
 from app.database import get_db
 from app.routers.auth import oauth2_scheme
+from typing import List, Optional
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
@@ -61,13 +62,17 @@ def update_my_resume(
 def list_resumes(
     skip: int = 0,
     limit: int = 100,
+    in_basket: Optional[bool] = None,   # <-- ДОБАВЛЯЕМ
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
     user = auth.get_current_user(db, token)
     if user.role not in [models.UserRole.hr, models.UserRole.manager]:
         raise HTTPException(status_code=403, detail="Not authorized")
-    resumes = db.query(models.Resume).offset(skip).limit(limit).all()
+    query = db.query(models.Resume)
+    if in_basket is not None:
+        query = query.filter(models.Resume.in_basket == in_basket)
+    resumes = query.offset(skip).limit(limit).all()
     return resumes
 
 @router.get("/{resume_id}", response_model=schemas.ResumeOut)
@@ -83,3 +88,45 @@ def get_resume(
     if not resume:
         raise HTTPException(status_code=404)
     return resume
+
+@router.post("/{resume_id}/basket")
+def toggle_basket(
+    resume_id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    if user.role != models.UserRole.hr:
+        raise HTTPException(status_code=403, detail="Only HR can manage basket")
+    resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    resume.in_basket = not resume.in_basket
+    db.commit()
+    return {"in_basket": resume.in_basket}
+
+
+@router.get("/{resume_id}/detail", response_model=schemas.ResumeDetailOut)
+def get_resume_detail(
+    resume_id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    if user.role not in [models.UserRole.hr, models.UserRole.manager]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    
+    # Получаем все отзывы, оставленные руководителями по кандидату
+    reviews = db.query(models.Review).join(models.Interview).filter(
+        models.Interview.candidate_id == resume.candidate_id
+    ).all()
+    
+    # Формируем ответ
+    result = schemas.ResumeDetailOut.from_orm(resume)
+    result.reviews = [schemas.ReviewOut.from_orm(r) for r in reviews]
+    return result
+
