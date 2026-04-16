@@ -174,3 +174,8 @@ class NotificationOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class InterviewRequest(BaseModel):
+    resume_id: int
+    comment: Optional[str] = None

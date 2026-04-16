@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 
 const ResumeDetail = () => {
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestComment, setRequestComment] = useState('');
   const { id } = useParams();
   const navigate = useNavigate();
   const [resume, setResume] = useState(null);
@@ -142,6 +144,20 @@ const ResumeDetail = () => {
   if (loading) return <div>Загрузка...</div>;
   if (!resume) return <div>Резюме не найдено</div>;
 
+  const requestInterview = async () => {
+    try {
+      await api.post('/interviews/request', {
+        resume_id: resume.id,
+        comment: requestComment
+      });
+      alert('Запрос отправлен HR');
+      setShowRequestForm(false);
+      setRequestComment('');
+    } catch (err) {
+      alert('Ошибка при отправке запроса');
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <button onClick={() => navigate('/dashboard')}>← Назад к списку</button>
@@ -275,10 +291,35 @@ const ResumeDetail = () => {
                 <button onClick={submitReview}>Отправить</button>
                 <button onClick={() => setShowReviewForm(false)}>Отмена</button>
               </div>
+
             </div>
           )}
+
+          <div style={{ marginTop: 20 }}>
+                <button onClick={() => setShowRequestForm(!showRequestForm)}>
+                  Запросить собеседование
+                </button>
+                {showRequestForm && (
+                  <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+                    <label>Комментарий (необязательно):</label>
+                    <textarea
+                      value={requestComment}
+                      onChange={(e) => setRequestComment(e.target.value)}
+                      rows={3}
+                      style={{ width: '100%', marginBottom: 10 }}
+                    />
+                    <button onClick={requestInterview}>Отправить запрос</button>
+                    <button onClick={() => setShowRequestForm(false)}>Отмена</button>
+                  </div>
+                )}
+              </div>
         </div>
+
+        
+        
       )}
+
+      
 
       <h2>Собеседования</h2>
       {interviews.length === 0 && <p>Нет назначенных собеседований</p>}

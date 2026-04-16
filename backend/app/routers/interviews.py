@@ -146,6 +146,8 @@ def cancel_interview(
     return {"status": "cancelled"}
 
 @router.get("/", response_model=list[schemas.InterviewOut])
+
+
 def list_interviews(
     resume_id: int = None,
     token: str = Depends(oauth2_scheme),
@@ -157,3 +159,30 @@ def list_interviews(
         query = query.filter(models.Interview.resume_id == resume_id)
     interviews = query.all()
     return interviews
+
+@router.post("/request")
+def request_interview(
+    request: schemas.InterviewRequest,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    if user.role != models.UserRole.manager:
+        raise HTTPException(status_code=403, detail="Only managers can request interviews")
+    # Найти кандидата по resume_id
+    resume = db.query(models.Resume).filter(models.Resume.id == request.resume_id).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    candidate = db.query(models.User).filter(models.User.id == resume.candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    # Найти всех HR (или конкретного HR, к которому относится резюме – упростим: всех HR)
+    hrs = db.query(models.User).filter(models.User.role == models.UserRole.hr).all()
+    if not hrs:
+        raise HTTPException(status_code=400, detail="No HR users found")
+    # Отправить уведомление каждому HR (или первому? лучше всем, кто может обработать)
+    title = f"Запрос на собеседование от руководителя {user.full_name}"
+    message = f"Руководитель {user.full_name} запросил собеседование с кандидатом {candidate.full_name} (резюме ID {resume.id}). Комментарий: {request.comment or 'нет'}"
+    for hr in hrs:
+        create_notification(db, user.id, hr.id, title, message, None)
+    return {"status": "request sent"}
