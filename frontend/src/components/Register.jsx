@@ -13,7 +13,7 @@ const Register = () => {
     try {
       await api.post('/auth/register', form);
       alert('Registered! Please login.');
-      navigate('/login');
+      window.location.href = '/login';
     } catch (error) {
       alert('Registration failed');
     }

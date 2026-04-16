@@ -15,12 +15,14 @@ const Login = () => {
       formData.append('password', password);
       const response = await api.post('/auth/login', formData);
       localStorage.setItem('token', response.data.access_token);
-      // Decode token to get role (simplified: fetch user)
       const userResp = await api.get('/auth/me');
       localStorage.setItem('role', userResp.data.role);
-      if (userResp.data.role === 'candidate') navigate('/profile');
-      else if (userResp.data.role === 'hr') navigate('/dashboard');
-      else if (userResp.data.role === 'manager') navigate('/dashboard');
+      // Редирект с перезагрузкой
+      if (userResp.data.role === 'candidate') {
+        window.location.href = '/profile';
+      } else {
+        window.location.href = '/dashboard';
+      }
     } catch (error) {
       alert('Login failed');
     }
