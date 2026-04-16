@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 
 const Login = () => {
@@ -17,7 +17,6 @@ const Login = () => {
       localStorage.setItem('token', response.data.access_token);
       const userResp = await api.get('/auth/me');
       localStorage.setItem('role', userResp.data.role);
-      // Редирект с перезагрузкой
       if (userResp.data.role === 'candidate') {
         window.location.href = '/profile';
       } else {
@@ -29,12 +28,35 @@ const Login = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      <button type="submit">Login</button>
-    </form>
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <h2 className="auth-title">Вход</h2>
+        <div className="form-group">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            placeholder="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="form-input"
+          />
+        </div>
+        <button type="submit" className="btn-primary">Войти</button>
+        <p className="auth-link">
+          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+        </p>
+      </form>
+    </div>
   );
 };
 

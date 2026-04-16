@@ -92,55 +92,71 @@ const CandidateProfile = () => {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Моё резюме</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="desired_position" placeholder="Желаемая должность" value={form.desired_position} onChange={handleChange} required />
-        <input name="salary_expectation" type="number" placeholder="Зарплатные ожидания" value={form.salary_expectation} onChange={handleChange} />
-        <input name="employment_type" placeholder="Тип занятости" value={form.employment_type} onChange={handleChange} />
-        <input name="work_format" placeholder="Формат работы" value={form.work_format} onChange={handleChange} />
-        <textarea name="about" placeholder="О себе" value={form.about} onChange={handleChange} />
-        <button type="submit">Сохранить резюме</button>
-      </form>
+    <div className="profile-container">
+      <h2 className="page-title">Моё резюме</h2>
+      
+      <div className="resume-section">
+        <h3 className="section-title">Основная информация</h3>
+        <form onSubmit={handleSubmit} className="profile-form">
+          <div className="form-row">
+            <input name="desired_position" placeholder="Желаемая должность" value={form.desired_position} onChange={handleChange} required className="form-input" />
+          </div>
+          <div className="form-row">
+            <input name="salary_expectation" type="number" placeholder="Зарплатные ожидания" value={form.salary_expectation} onChange={handleChange} className="form-input" />
+          </div>
+          <div className="form-row">
+            <input name="employment_type" placeholder="Тип занятости" value={form.employment_type} onChange={handleChange} className="form-input" />
+          </div>
+          <div className="form-row">
+            <input name="work_format" placeholder="Формат работы" value={form.work_format} onChange={handleChange} className="form-input" />
+          </div>
+          <div className="form-row">
+            <textarea name="about" placeholder="О себе" value={form.about} onChange={handleChange} className="form-textarea" />
+          </div>
+          <button type="submit" className="btn-primary">Сохранить</button>
+        </form>
+      </div>
 
       {resume && (
-        <div>
-          <h3>Загрузить документ</h3>
-          <form onSubmit={handleFileUpload}>
-            <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-            <button type="submit">Загрузить</button>
-          </form>
+        <>
+          <div className="resume-section">
+            <h3 className="section-title">Документы</h3>
+            <form onSubmit={handleFileUpload} className="upload-form">
+              <input type="file" onChange={(e) => setFile(e.target.files[0])} className="file-input" />
+              <button type="submit" className="btn-secondary">Загрузить</button>
+            </form>
+            <ul className="documents-list">
+              {resume.documents.map(doc => (
+                <li key={doc.id} className="document-item">
+                  <span className="doc-filename">{doc.filename}</span>
+                  <div className="doc-actions">
+                    <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer" className="doc-link">Открыть</a>
+                    <a href={`http://localhost:8000/files/download/${doc.id}?download=1`} className="doc-link">Скачать</a>
+                    <button onClick={() => handleDeleteDocument(doc.id)} className="doc-delete">Удалить</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <h3>Документы</h3>
-          <ul>
-            {resume.documents.map(doc => (
-              <li key={doc.id}>
-                {doc.filename}{' '}
-                <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer">Открыть</a>
-                {' | '}
-                <a href={`http://localhost:8000/files/download/${doc.id}?download=1`} target="_blank" rel="noreferrer">Скачать</a>
-                {' | '}
-                <button onClick={() => handleDeleteDocument(doc.id)}>Удалить</button>
-              </li>
-            ))}
-          </ul>
-
-          <h3>Отзывы руководителей</h3>
-          {reviews.length > 0 ? (
-            reviews.map(review => (
-              <div key={review.id} style={{ border: '1px solid #ccc', margin: 10, padding: 10 }}>
-                <p><strong>Оценка:</strong> {review.overall_score}/5</p>
-                <p><strong>Сильные стороны:</strong> {review.strengths}</p>
-                <p><strong>Слабые стороны:</strong> {review.weaknesses}</p>
-                <p><strong>Комментарий:</strong> {review.comment}</p>
-                <p><strong>Рекомендация:</strong> {review.recommendation}</p>
-                <p><em>Дата: {new Date(review.created_at).toLocaleString()}</em></p>
-              </div>
-            ))
-          ) : (
-            <p>Отзывов пока нет</p>
-          )}
-        </div>
+          <div className="resume-section">
+            <h3 className="section-title">Отзывы руководителей</h3>
+            {reviews.length > 0 ? (
+              reviews.map(review => (
+                <div key={review.id} className="review-card">
+                  <div className="review-header">
+                    <span className="review-score">{review.overall_score}/5</span>
+                    <span className="review-recommendation">{review.recommendation}</span>
+                  </div>
+                  <p><strong>Сильные стороны:</strong> {review.strengths}</p>
+                  <p><strong>Слабые стороны:</strong> {review.weaknesses}</p>
+                  <p><strong>Комментарий:</strong> {review.comment}</p>
+                  <p className="review-date">{new Date(review.created_at).toLocaleString()}</p>
+                </div>
+              ))
+            ) : <p>Отзывов пока нет</p>}
+          </div>
+        </>
       )}
     </div>
   );

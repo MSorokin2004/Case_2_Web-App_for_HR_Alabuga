@@ -3,8 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 
 const ResumeDetail = () => {
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [requestComment, setRequestComment] = useState('');
   const { id } = useParams();
   const navigate = useNavigate();
   const [resume, setResume] = useState(null);
@@ -30,6 +28,8 @@ const ResumeDetail = () => {
   });
   const [managers, setManagers] = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestComment, setRequestComment] = useState('');
 
   useEffect(() => {
     fetchResumeDetail();
@@ -141,9 +141,6 @@ const ResumeDetail = () => {
     }
   };
 
-  if (loading) return <div>Загрузка...</div>;
-  if (!resume) return <div>Резюме не найдено</div>;
-
   const requestInterview = async () => {
     try {
       await api.post('/interviews/request', {
@@ -158,89 +155,108 @@ const ResumeDetail = () => {
     }
   };
 
+  if (loading) return <div className="loading">Загрузка...</div>;
+  if (!resume) return <div className="error">Резюме не найдено</div>;
+
   return (
-    <div style={{ padding: 20 }}>
-      <button onClick={() => navigate('/dashboard')}>← Назад к списку</button>
-      <h1>{resume.candidate.full_name}</h1>
-      <p><strong>Желаемая должность:</strong> {resume.desired_position}</p>
-      <p><strong>Зарплатные ожидания:</strong> {resume.salary_expectation}</p>
-      <p><strong>Тип занятости:</strong> {resume.employment_type}</p>
-      <p><strong>Формат работы:</strong> {resume.work_format}</p>
-      <p><strong>О себе:</strong> {resume.about}</p>
-      <p><strong>Статус:</strong> {resume.status}</p>
-      <p>
-        <strong>В корзине:</strong> {resume.in_basket ? 'Да' : 'Нет'}
-        <button onClick={handleToggleBasket} style={{ marginLeft: 10 }}>
-          {resume.in_basket ? 'Убрать из корзины' : 'Добавить в корзину'}
-        </button>
-      </p>
+    <div className="resume-detail-container">
+      <button onClick={() => navigate('/dashboard')} className="btn-back">← Назад к списку</button>
 
-      <h2>Документы</h2>
-      <ul>
-        {resume.documents.map(doc => (
-          <li key={doc.id}>
-            {doc.filename}{' '}
-            <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer">Открыть</a>
-            {' | '}
-            <a href={`http://localhost:8000/files/download/${doc.id}?download=1`} target="_blank" rel="noreferrer">Скачать</a>
-          </li>
-        ))}
-      </ul>
+      <div className="resume-header">
+        <h1 className="resume-candidate-name">{resume.candidate.full_name}</h1>
+        <div className="resume-actions">
+          <button onClick={handleToggleBasket} className={`btn-basket ${resume.in_basket ? 'active' : ''}`}>
+            {resume.in_basket ? 'Убрать из корзины' : 'В корзину'}
+          </button>
+        </div>
+      </div>
 
+      <div className="resume-section">
+        <h2 className="section-title">Основная информация</h2>
+        <div className="info-grid">
+          <div className="info-item"><strong>Желаемая должность:</strong> {resume.desired_position}</div>
+          <div className="info-item"><strong>Зарплатные ожидания:</strong> {resume.salary_expectation} ₽</div>
+          <div className="info-item"><strong>Тип занятости:</strong> {resume.employment_type}</div>
+          <div className="info-item"><strong>Формат работы:</strong> {resume.work_format}</div>
+          <div className="info-item"><strong>Статус:</strong> {resume.status}</div>
+        </div>
+        {resume.about && <p className="resume-about"><strong>О себе:</strong> {resume.about}</p>}
+      </div>
+
+      <div className="resume-section">
+        <h2 className="section-title">Документы</h2>
+        <ul className="documents-list">
+          {resume.documents.map(doc => (
+            <li key={doc.id} className="document-item">
+              <span className="doc-filename">{doc.filename}</span>
+              <div className="doc-actions">
+                <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer" className="doc-link">Открыть</a>
+                <a href={`http://localhost:8000/files/download/${doc.id}?download=1`} className="doc-link">Скачать</a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Блок для HR: приглашение и назначение собеседования */}
       {localStorage.getItem('role') === 'hr' && (
         <>
-          <div style={{ marginTop: 20 }}>
-            <button onClick={() => setShowInviteForm(!showInviteForm)}>
-              Отправить приглашение
-            </button>
+          <div className="resume-section">
+            <h2 className="section-title">Действия HR</h2>
+            <div className="action-buttons">
+              <button onClick={() => setShowInviteForm(!showInviteForm)} className="btn-secondary">
+                Отправить приглашение
+              </button>
+              <button onClick={() => { setShowInterviewForm(!showInterviewForm); if (!showInterviewForm) fetchManagers(); }} className="btn-secondary">
+                Назначить собеседование
+              </button>
+            </div>
+
             {showInviteForm && (
-              <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+              <div className="form-card">
                 <input
                   type="text"
                   placeholder="Заголовок"
                   value={inviteTitle}
                   onChange={(e) => setInviteTitle(e.target.value)}
-                  style={{ width: '100%', marginBottom: 5 }}
+                  className="form-input"
                 />
                 <textarea
                   placeholder="Сообщение"
                   value={inviteMessage}
                   onChange={(e) => setInviteMessage(e.target.value)}
                   rows={3}
-                  style={{ width: '100%', marginBottom: 5 }}
+                  className="form-textarea"
                 />
-                <button onClick={sendInvitation}>Отправить</button>
-                <button onClick={() => setShowInviteForm(false)}>Отмена</button>
+                <div className="form-actions">
+                  <button onClick={sendInvitation} className="btn-primary">Отправить</button>
+                  <button onClick={() => setShowInviteForm(false)} className="btn-outline">Отмена</button>
+                </div>
               </div>
             )}
-          </div>
 
-          <div style={{ marginTop: 20 }}>
-            <button onClick={() => { setShowInterviewForm(!showInterviewForm); if (!showInterviewForm) fetchManagers(); }}>
-              Назначить собеседование
-            </button>
             {showInterviewForm && (
-              <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+              <div className="form-card">
                 <label>Руководитель:</label>
-                <select value={interviewForm.manager_id} onChange={(e) => setInterviewForm({...interviewForm, manager_id: e.target.value})}>
+                <select value={interviewForm.manager_id} onChange={(e) => setInterviewForm({...interviewForm, manager_id: e.target.value})} className="form-select">
                   <option value="">Выберите</option>
                   {managers.map(m => <option key={m.id} value={m.id}>{m.full_name}</option>)}
                 </select>
                 <label>Дата и время:</label>
-                <input type="datetime-local" value={interviewForm.datetime} onChange={(e) => setInterviewForm({...interviewForm, datetime: e.target.value})} />
+                <input type="datetime-local" value={interviewForm.datetime} onChange={(e) => setInterviewForm({...interviewForm, datetime: e.target.value})} className="form-input" />
                 <label>Формат:</label>
-                <select value={interviewForm.format} onChange={(e) => setInterviewForm({...interviewForm, format: e.target.value})}>
+                <select value={interviewForm.format} onChange={(e) => setInterviewForm({...interviewForm, format: e.target.value})} className="form-select">
                   <option value="online">Онлайн</option>
                   <option value="offline">Офлайн</option>
                   <option value="phone">Телефон</option>
                 </select>
                 <label>Ссылка/Место:</label>
-                <input value={interviewForm.location_or_link} onChange={(e) => setInterviewForm({...interviewForm, location_or_link: e.target.value})} />
+                <input value={interviewForm.location_or_link} onChange={(e) => setInterviewForm({...interviewForm, location_or_link: e.target.value})} className="form-input" />
                 <label>Комментарий:</label>
-                <textarea value={interviewForm.comment} onChange={(e) => setInterviewForm({...interviewForm, comment: e.target.value})} />
-                <div style={{ marginTop: 10 }}>
-                  <button onClick={createInterview}>Создать</button>
-                  <button onClick={() => setShowInterviewForm(false)}>Отмена</button>
+                <textarea value={interviewForm.comment} onChange={(e) => setInterviewForm({...interviewForm, comment: e.target.value})} className="form-textarea" />
+                <div className="form-actions">
+                  <button onClick={createInterview} className="btn-primary">Создать</button>
+                  <button onClick={() => setShowInterviewForm(false)} className="btn-outline">Отмена</button>
                 </div>
               </div>
             )}
@@ -248,13 +264,21 @@ const ResumeDetail = () => {
         </>
       )}
 
+      {/* Блок для руководителя: отзыв и запрос собеседования */}
       {localStorage.getItem('role') === 'manager' && (
-        <div style={{ marginTop: 20 }}>
-          <button onClick={() => setShowReviewForm(!showReviewForm)}>
-            Оставить отзыв
-          </button>
+        <div className="resume-section">
+          <h2 className="section-title">Действия руководителя</h2>
+          <div className="action-buttons">
+            <button onClick={() => setShowReviewForm(!showReviewForm)} className="btn-secondary">
+              Оставить отзыв
+            </button>
+            <button onClick={() => setShowRequestForm(!showRequestForm)} className="btn-secondary">
+              Запросить собеседование
+            </button>
+          </div>
+
           {showReviewForm && (
-            <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+            <div className="form-card">
               <label>Общая оценка (1-5):</label>
               <input
                 type="number"
@@ -262,96 +286,74 @@ const ResumeDetail = () => {
                 max="5"
                 value={reviewForm.overall_score}
                 onChange={(e) => setReviewForm({ ...reviewForm, overall_score: parseInt(e.target.value) })}
+                className="form-input"
               />
               <label>Сильные стороны:</label>
-              <textarea
-                value={reviewForm.strengths}
-                onChange={(e) => setReviewForm({ ...reviewForm, strengths: e.target.value })}
-              />
+              <textarea value={reviewForm.strengths} onChange={(e) => setReviewForm({ ...reviewForm, strengths: e.target.value })} className="form-textarea" />
               <label>Слабые стороны:</label>
-              <textarea
-                value={reviewForm.weaknesses}
-                onChange={(e) => setReviewForm({ ...reviewForm, weaknesses: e.target.value })}
-              />
+              <textarea value={reviewForm.weaknesses} onChange={(e) => setReviewForm({ ...reviewForm, weaknesses: e.target.value })} className="form-textarea" />
               <label>Комментарий:</label>
-              <textarea
-                value={reviewForm.comment}
-                onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-              />
+              <textarea value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} className="form-textarea" />
               <label>Рекомендация:</label>
-              <select
-                value={reviewForm.recommendation}
-                onChange={(e) => setReviewForm({ ...reviewForm, recommendation: e.target.value })}
-              >
+              <select value={reviewForm.recommendation} onChange={(e) => setReviewForm({ ...reviewForm, recommendation: e.target.value })} className="form-select">
                 <option value="рекомендую">Рекомендую</option>
                 <option value="отказ">Отказ</option>
                 <option value="резерв">Резерв</option>
               </select>
-              <div style={{ marginTop: 10 }}>
-                <button onClick={submitReview}>Отправить</button>
-                <button onClick={() => setShowReviewForm(false)}>Отмена</button>
+              <div className="form-actions">
+                <button onClick={submitReview} className="btn-primary">Отправить</button>
+                <button onClick={() => setShowReviewForm(false)} className="btn-outline">Отмена</button>
               </div>
-
             </div>
           )}
 
-          <div style={{ marginTop: 20 }}>
-                <button onClick={() => setShowRequestForm(!showRequestForm)}>
-                  Запросить собеседование
-                </button>
-                {showRequestForm && (
-                  <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
-                    <label>Комментарий (необязательно):</label>
-                    <textarea
-                      value={requestComment}
-                      onChange={(e) => setRequestComment(e.target.value)}
-                      rows={3}
-                      style={{ width: '100%', marginBottom: 10 }}
-                    />
-                    <button onClick={requestInterview}>Отправить запрос</button>
-                    <button onClick={() => setShowRequestForm(false)}>Отмена</button>
-                  </div>
-                )}
+          {showRequestForm && (
+            <div className="form-card">
+              <label>Комментарий (необязательно):</label>
+              <textarea value={requestComment} onChange={(e) => setRequestComment(e.target.value)} rows={3} className="form-textarea" />
+              <div className="form-actions">
+                <button onClick={requestInterview} className="btn-primary">Отправить запрос</button>
+                <button onClick={() => setShowRequestForm(false)} className="btn-outline">Отмена</button>
               </div>
-        </div>
-
-        
-        
-      )}
-
-      
-
-      <h2>Собеседования</h2>
-      {interviews.length === 0 && <p>Нет назначенных собеседований</p>}
-      {interviews.map(iv => (
-        <div key={iv.id} style={{ border: '1px solid #ddd', margin: 5, padding: 10 }}>
-          <p><strong>Дата:</strong> {new Date(iv.datetime).toLocaleString()}</p>
-          <p><strong>Формат:</strong> {iv.format} {iv.location_or_link && `(${iv.location_or_link})`}</p>
-          <p><strong>Статус:</strong> {iv.status}</p>
-          {iv.comment && <p><strong>Комментарий:</strong> {iv.comment}</p>}
-          {(localStorage.getItem('role') === 'hr' || localStorage.getItem('role') === 'manager') && iv.status === 'scheduled' && (
-            <button onClick={() => cancelInterview(iv.id)}>Отменить собеседование</button>
+            </div>
           )}
         </div>
-      ))}
+      )}
 
-      <h2>Отзывы руководителей</h2>
-      {resume.reviews && resume.reviews.length > 0 ? (
-        <div>
-          {resume.reviews.map(review => (
-            <div key={review.id} style={{ border: '1px solid #ccc', margin: 10, padding: 10 }}>
-              <p><strong>Оценка:</strong> {review.overall_score}/5</p>
+      <div className="resume-section">
+        <h2 className="section-title">Собеседования</h2>
+        {interviews.length === 0 ? <p>Нет назначенных собеседований</p> : (
+          interviews.map(iv => (
+            <div key={iv.id} className="interview-card">
+              <p><strong>Дата:</strong> {new Date(iv.datetime).toLocaleString()}</p>
+              <p><strong>Формат:</strong> {iv.format} {iv.location_or_link && `(${iv.location_or_link})`}</p>
+              <p><strong>Статус:</strong> {iv.status}</p>
+              {iv.comment && <p><strong>Комментарий:</strong> {iv.comment}</p>}
+              {(localStorage.getItem('role') === 'hr' || localStorage.getItem('role') === 'manager') && iv.status === 'scheduled' && (
+                <button onClick={() => cancelInterview(iv.id)} className="btn-danger">Отменить</button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="resume-section">
+        <h2 className="section-title">Отзывы</h2>
+        {resume.reviews && resume.reviews.length > 0 ? (
+          resume.reviews.map(review => (
+            <div key={review.id} className="review-card">
+              <div className="review-header">
+                <span className="review-score">{review.overall_score}/5</span>
+                <span className="review-recommendation">{review.recommendation}</span>
+              </div>
               <p><strong>Сильные стороны:</strong> {review.strengths}</p>
               <p><strong>Слабые стороны:</strong> {review.weaknesses}</p>
               <p><strong>Комментарий:</strong> {review.comment}</p>
-              <p><strong>Рекомендация:</strong> {review.recommendation}</p>
-              <p><em>Дата: {new Date(review.created_at).toLocaleString()}</em></p>
+              <p className="review-date">{new Date(review.created_at).toLocaleString()}</p>
             </div>
-          ))}
-        </div>
-      ) : (
-        <p>Отзывов пока нет</p>
-      )}
+          ))
+        ) : <p>Отзывов пока нет</p>}
+      </div>
     </div>
   );
 };

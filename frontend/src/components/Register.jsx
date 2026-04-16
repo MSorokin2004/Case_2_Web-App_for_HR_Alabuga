@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'candidate' });
@@ -20,18 +20,51 @@ const Register = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Register</h2>
-      <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
-      <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
-      <input name="full_name" placeholder="Full Name" onChange={handleChange} required />
-      <select name="role" onChange={handleChange}>
-        <option value="candidate">Candidate</option>
-        <option value="hr">HR</option>
-        <option value="manager">Manager</option>
-      </select>
-      <button type="submit">Register</button>
-    </form>
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <h2 className="auth-title">Регистрация</h2>
+        <div className="form-group">
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            onChange={handleChange}
+            required
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <input
+            name="password"
+            type="password"
+            placeholder="Пароль"
+            onChange={handleChange}
+            required
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <input
+            name="full_name"
+            placeholder="Полное имя"
+            onChange={handleChange}
+            required
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <select name="role" onChange={handleChange} className="form-select">
+            <option value="candidate">Кандидат</option>
+            <option value="hr">HR</option>
+            <option value="manager">Руководитель</option>
+          </select>
+        </div>
+        <button type="submit" className="btn-primary">Зарегистрироваться</button>
+        <p className="auth-link">
+          Уже есть аккаунт? <Link to="/login">Войти</Link>
+        </p>
+      </form>
+    </div>
   );
 };
 

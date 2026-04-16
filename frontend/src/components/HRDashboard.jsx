@@ -30,30 +30,25 @@ const HRDashboard = () => {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Кандидаты</h2>
-      <button onClick={handleToggleBasketFilter}>
-        {showBasketOnly ? 'Показать все' : 'Показать только корзину'}
-      </button>
-      <div style={{ display: 'flex', flexWrap: 'wrap', marginTop: 20 }}>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Кандидаты</h2>
+        <button onClick={handleToggleBasketFilter} className="btn-secondary">
+          {showBasketOnly ? 'Показать все' : 'Показать только корзину'}
+        </button>
+      </div>
+      <div className="resume-grid">
         {resumes.map(resume => (
           <div
             key={resume.id}
-            style={{
-              border: '1px solid #ccc',
-              margin: 10,
-              padding: 15,
-              width: 220,
-              cursor: 'pointer',
-              backgroundColor: resume.in_basket ? '#f0f0c0' : 'white'
-            }}
+            className={`resume-card ${resume.in_basket ? 'in-basket' : ''}`}
             onClick={() => handleCardClick(resume.id)}
           >
-            <h3>{resume.candidate.full_name}</h3>
-            <p><strong>{resume.desired_position}</strong></p>
-            <p>Зарплата: {resume.salary_expectation}</p>
-            <p>Статус: {resume.status}</p>
-            <p>{resume.in_basket ? '🛒 В корзине' : ''}</p>
+            <h3 className="resume-name">{resume.candidate.full_name}</h3>
+            <p className="resume-position">{resume.desired_position}</p>
+            <p className="resume-salary">Зарплата: {resume.salary_expectation} ₽</p>
+            <p className="resume-status">Статус: {resume.status}</p>
+            {resume.in_basket && <span className="basket-badge">В корзине</span>}
           </div>
         ))}
       </div>

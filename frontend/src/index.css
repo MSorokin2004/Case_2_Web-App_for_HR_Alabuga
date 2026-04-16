@@ -1,111 +1,616 @@
+/* Подключение шрифта Alabuga Sans */
+@font-face {
+  font-family: 'Alabuga Sans';
+  src: url('./assets/fonts/alabuga-sans.ttc') format('truetype-collection');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Alabuga Sans';
+  src: url('./assets/fonts/alabuga-sans.ttc') format('truetype-collection');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Alabuga Sans';
+  src: url('./assets/fonts/alabuga-sans.ttc') format('truetype-collection');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Alabuga Sans';
+  src: url('./assets/fonts/alabuga-sans.ttc') format('truetype-collection');
+  font-weight: 900;
+  font-style: normal;
+}
+
+/* Цветовые переменные */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --color-primary: #0C6FF1;
+  --color-black: #161616;
+  --color-white: #FFFFFF;
+  --color-bg-light: #DEEEFD;
+  --color-gray: #CCCFD8;
+  --color-accent-light: #69CFF7;
+  --color-deep: #000D3C;
+  
+  --font-main: 'Alabuga Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-body {
+* {
   margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+  padding: 0;
   box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-white);
+  color: var(--color-black);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+/* Общие стили для контейнеров */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
-h2 {
+
+/* Базовые стили кнопок */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Стили для ссылок */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+
+
+/* Аутентификация */
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--color-bg-light);
+  padding: 20px;
+}
+
+.auth-form {
+  background: var(--color-white);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  color: var(--color-black);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--color-gray);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #0a5ec7;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--color-black);
+}
+
+
+/* Навигация */
+.app-nav {
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray);
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.nav-brand {
   font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+  font-weight: 700;
+  color: var(--color-black);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
+.nav-link {
+  color: var(--color-black);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--color-primary);
+}
+
+.nav-link-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white) !important;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.nav-link-primary:hover {
+  background-color: #0a5ec7;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-black);
+}
+
+.logout-btn:hover {
+  color: var(--color-primary);
+}
+
+.main-content {
+  min-height: calc(100vh - 70px);
+  background-color: var(--color-bg-light);
+}
+
+
+/* Дашборд */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.resume-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.resume-card {
+  background: var(--color-white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.resume-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.resume-card.in-basket {
+  border: 2px solid var(--color-primary);
+}
+
+.resume-name {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-black);
+}
+
+.resume-position {
+  font-size: 16px;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+}
+
+.resume-salary,
+.resume-status {
+  font-size: 14px;
+  color: var(--color-black);
+  margin-bottom: 4px;
+}
+
+.basket-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--color-primary);
+  color: white;
   padding: 4px 8px;
-  background: var(--code-bg);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Детальная страница резюме */
+.resume-detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.btn-back:hover {
+  text-decoration: underline;
+}
+
+.resume-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.resume-candidate-name {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.btn-basket {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  border: 1px solid var(--color-gray);
+  background: white;
+  transition: all 0.2s;
+}
+
+.btn-basket.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.resume-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--color-black);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  font-size: 16px;
+}
+
+.resume-about {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-gray);
+}
+
+.documents-list {
+  list-style: none;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-gray);
+}
+
+.doc-filename {
+  font-weight: 500;
+}
+
+.doc-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.doc-link {
+  color: var(--color-primary);
+}
+
+.interview-card,
+.review-card {
+  border: 1px solid var(--color-gray);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: var(--color-white);
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.review-score {
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.review-recommendation {
+  background: var(--color-bg-light);
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
+.review-date {
+  margin-top: 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+/* Уведомления */
+.notifications-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  background: white;
+  border-radius: 16px;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-left: 4px solid transparent;
+}
+
+.notification-card.unread {
+  border-left-color: var(--color-primary);
+  background: #f8fbff;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.notification-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.unread-badge {
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.notification-message {
+  margin-bottom: 16px;
+  color: #444;
+}
+
+.notification-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn-outline {
+  padding: 8px 16px;
+  border: 1px solid var(--color-gray);
+  border-radius: 6px;
+  background: white;
+}
+
+.btn-success {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border-radius: 6px;
+}
+
+.btn-success:hover {
+  background: #218838;
+}
+
+
+/* Профиль кандидата */
+.profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  width: 100%;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--color-gray);
+  border-radius: 8px;
+  font-family: inherit;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.upload-form {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.file-input {
+  flex: 1;
+  padding: 8px;
+}
+
+.doc-delete {
+  color: #dc3545;
+  margin-left: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.doc-delete:hover {
+  text-decoration: underline;
 }
