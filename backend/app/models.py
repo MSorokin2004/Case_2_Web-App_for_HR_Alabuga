@@ -105,3 +105,16 @@ class Review(Base):
 
     interview = relationship("Interview", backref="reviews")
     reviewer = relationship("User")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)      # кто отправил (HR)
+    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=False)   # кому (кандидат)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    sender = relationship("User", foreign_keys=[sender_id])
+    recipient = relationship("User", foreign_keys=[recipient_id])

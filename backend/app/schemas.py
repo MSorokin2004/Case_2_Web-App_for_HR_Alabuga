@@ -152,3 +152,21 @@ class ReviewOut(BaseModel):
 
 class ResumeDetailOut(ResumeOut):
     reviews: List[ReviewOut] = []
+
+class NotificationCreate(BaseModel):
+    recipient_id: int
+    title: str
+    message: str
+
+class NotificationOut(BaseModel):
+    id: int
+    sender_id: int
+    recipient_id: int
+    title: str
+    message: str
+    is_read: bool
+    created_at: datetime
+    sender: Optional[UserOut] = None
+
+    class Config:
+        from_attributes = True

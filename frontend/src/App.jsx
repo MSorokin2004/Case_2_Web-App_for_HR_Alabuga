@@ -5,12 +5,16 @@ import CandidateProfile from './components/CandidateProfile';
 import HRDashboard from './components/HRDashboard';
 import ResumeDetail from './components/ResumeDetail';
 import PrivateRoute from './components/PrivateRoute';
+import Notifications from './components/Notifications';
+
+// Внутри Routes:
 
 function App() {
   return (
     <BrowserRouter>
       <nav>
         <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
+        <Link to="/notifications">Уведомления</Link>
       </nav>
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
@@ -31,6 +35,13 @@ function App() {
             <ResumeDetail />
           </PrivateRoute>
         } />
+
+        <Route path="/notifications" element={
+          <PrivateRoute allowedRoles={['candidate', 'hr']}>
+            <Notifications />
+          </PrivateRoute>
+        } />
+
       </Routes>
     </BrowserRouter>
   );
