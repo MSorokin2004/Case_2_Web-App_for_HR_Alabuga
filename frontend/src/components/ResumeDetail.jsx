@@ -57,8 +57,21 @@ const ResumeDetail = () => {
       <ul>
         {resume.documents.map(doc => (
           <li key={doc.id}>
-            <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer">
-              {doc.filename}
+            {doc.filename}{' '}
+            <a
+              href={`http://localhost:8000/files/download/${doc.id}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Открыть
+            </a>
+            {' | '}
+            <a
+              href={`http://localhost:8000/files/download/${doc.id}?download=1`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Скачать
             </a>
           </li>
         ))}

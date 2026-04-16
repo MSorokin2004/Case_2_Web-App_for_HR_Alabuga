@@ -7,6 +7,7 @@ from app import models, schemas, auth
 from app.database import get_db
 from app.config import settings
 from app.routers.auth import oauth2_scheme
+import mimetypes
 
 router = APIRouter(prefix="/files", tags=["files"])
 
@@ -21,19 +22,17 @@ async def upload_file(
     db: Session = Depends(get_db)
 ):
     user = auth.get_current_user(db, token)
-    # Check if user is owner of resume or HR
     resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
+    # Только владелец или HR может загружать (по необходимости, можно оставить только владельца)
     if user.role != models.UserRole.hr and resume.candidate_id != user.id:
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    # Save file
     file_location = os.path.join(UPLOAD_DIR, f"{resume_id}_{file.filename}")
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Record in DB
     db_file = models.Document(
         resume_id=resume_id,
         filename=file.filename,
@@ -48,15 +47,28 @@ async def upload_file(
 @router.get("/download/{document_id}")
 async def download_file(
     document_id: int,
-    token: str = Depends(oauth2_scheme),
+    download: bool = False,
     db: Session = Depends(get_db)
 ):
-    user = auth.get_current_user(db, token)
     document = db.query(models.Document).filter(models.Document.id == document_id).first()
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    # Check access rights
-    resume = db.query(models.Resume).filter(models.Resume.id == document.resume_id).first()
-    if user.role != models.UserRole.hr and resume.candidate_id != user.id:
-        raise HTTPException(status_code=403)
-    return FileResponse(document.file_path, media_type='application/octet-stream', filename=document.filename)
+    
+    if not os.path.exists(document.file_path):
+        raise HTTPException(status_code=404, detail="File not found on server")
+
+    # Определяем MIME-тип
+    mime_type, _ = mimetypes.guess_type(document.filename)
+    if mime_type is None:
+        mime_type = document.file_type or "application/octet-stream"
+
+    # Выбираем тип отображения
+    disposition = "attachment" if download else "inline"
+
+    # FileResponse сам правильно закодирует имя файла с русскими символами
+    return FileResponse(
+        path=document.file_path,
+        media_type=mime_type,
+        filename=document.filename,
+        content_disposition_type=disposition
+    )
