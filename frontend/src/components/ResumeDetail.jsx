@@ -10,10 +10,42 @@ const ResumeDetail = () => {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteMessage, setInviteMessage] = useState('');
   const [inviteTitle, setInviteTitle] = useState('Приглашение на собеседование');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    overall_score: 5,
+    strengths: '',
+    weaknesses: '',
+    comment: '',
+    recommendation: 'рекомендую'
+  });
 
   useEffect(() => {
     fetchResumeDetail();
   }, [id]);
+
+  const fetchResumeDetail = async () => {
+    try {
+      const [resumeResp, reviewsResp] = await Promise.all([
+        api.get(`/resumes/${id}/detail`),
+        api.get(`/reviews/resume/${id}`)
+      ]);
+      setResume({ ...resumeResp.data, reviews: reviewsResp.data });
+    } catch (err) {
+      alert('Не удалось загрузить резюме');
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleBasket = async () => {
+    try {
+      const resp = await api.post(`/resumes/${id}/basket`);
+      setResume({ ...resume, in_basket: resp.data.in_basket });
+    } catch (err) {
+      alert('Ошибка при изменении корзины');
+    }
+  };
 
   const sendInvitation = async () => {
     try {
@@ -30,24 +62,19 @@ const ResumeDetail = () => {
     }
   };
 
-  const fetchResumeDetail = async () => {
+  const submitReview = async () => {
     try {
-      const resp = await api.get(`/resumes/${id}/detail`);
-      setResume(resp.data);
+      await api.post('/reviews/', {
+        resume_id: resume.id,
+        ...reviewForm
+      });
+      alert('Отзыв отправлен');
+      setShowReviewForm(false);
+      // Обновить отзывы
+      const reviewsResp = await api.get(`/reviews/resume/${id}`);
+      setResume({ ...resume, reviews: reviewsResp.data });
     } catch (err) {
-      alert('Не удалось загрузить резюме');
-      navigate('/dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleBasket = async () => {
-    try {
-      const resp = await api.post(`/resumes/${id}/basket`);
-      setResume({ ...resume, in_basket: resp.data.in_basket });
-    } catch (err) {
-      alert('Ошибка при изменении корзины');
+      alert('Ошибка при отправке отзыва');
     }
   };
 
@@ -70,57 +97,94 @@ const ResumeDetail = () => {
           {resume.in_basket ? 'Убрать из корзины' : 'Добавить в корзину'}
         </button>
       </p>
-          {localStorage.getItem('role') === 'hr' && (
-      <div style={{ marginTop: 20 }}>
-        <button onClick={() => setShowInviteForm(!showInviteForm)}>
-          Отправить приглашение
-        </button>
-        {showInviteForm && (
-          <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
-            <input
-              type="text"
-              placeholder="Заголовок"
-              value={inviteTitle}
-              onChange={(e) => setInviteTitle(e.target.value)}
-              style={{ width: '100%', marginBottom: 5 }}
-            />
-            <textarea
-              placeholder="Сообщение"
-              value={inviteMessage}
-              onChange={(e) => setInviteMessage(e.target.value)}
-              rows={3}
-              style={{ width: '100%', marginBottom: 5 }}
-            />
-            <button onClick={sendInvitation}>Отправить</button>
-            <button onClick={() => setShowInviteForm(false)}>Отмена</button>
-          </div>
-        )}
-      </div>
-    )}
 
       <h2>Документы</h2>
       <ul>
         {resume.documents.map(doc => (
           <li key={doc.id}>
             {doc.filename}{' '}
-            <a
-              href={`http://localhost:8000/files/download/${doc.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Открыть
-            </a>
+            <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer">Открыть</a>
             {' | '}
-            <a
-              href={`http://localhost:8000/files/download/${doc.id}?download=1`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Скачать
-            </a>
+            <a href={`http://localhost:8000/files/download/${doc.id}?download=1`} target="_blank" rel="noreferrer">Скачать</a>
           </li>
         ))}
       </ul>
+
+      {localStorage.getItem('role') === 'hr' && (
+        <div style={{ marginTop: 20 }}>
+          <button onClick={() => setShowInviteForm(!showInviteForm)}>
+            Отправить приглашение
+          </button>
+          {showInviteForm && (
+            <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+              <input
+                type="text"
+                placeholder="Заголовок"
+                value={inviteTitle}
+                onChange={(e) => setInviteTitle(e.target.value)}
+                style={{ width: '100%', marginBottom: 5 }}
+              />
+              <textarea
+                placeholder="Сообщение"
+                value={inviteMessage}
+                onChange={(e) => setInviteMessage(e.target.value)}
+                rows={3}
+                style={{ width: '100%', marginBottom: 5 }}
+              />
+              <button onClick={sendInvitation}>Отправить</button>
+              <button onClick={() => setShowInviteForm(false)}>Отмена</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {localStorage.getItem('role') === 'manager' && (
+        <div style={{ marginTop: 20 }}>
+          <button onClick={() => setShowReviewForm(!showReviewForm)}>
+            Оставить отзыв
+          </button>
+          {showReviewForm && (
+            <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+              <label>Общая оценка (1-5):</label>
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={reviewForm.overall_score}
+                onChange={(e) => setReviewForm({ ...reviewForm, overall_score: parseInt(e.target.value) })}
+              />
+              <label>Сильные стороны:</label>
+              <textarea
+                value={reviewForm.strengths}
+                onChange={(e) => setReviewForm({ ...reviewForm, strengths: e.target.value })}
+              />
+              <label>Слабые стороны:</label>
+              <textarea
+                value={reviewForm.weaknesses}
+                onChange={(e) => setReviewForm({ ...reviewForm, weaknesses: e.target.value })}
+              />
+              <label>Комментарий:</label>
+              <textarea
+                value={reviewForm.comment}
+                onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+              />
+              <label>Рекомендация:</label>
+              <select
+                value={reviewForm.recommendation}
+                onChange={(e) => setReviewForm({ ...reviewForm, recommendation: e.target.value })}
+              >
+                <option value="рекомендую">Рекомендую</option>
+                <option value="отказ">Отказ</option>
+                <option value="резерв">Резерв</option>
+              </select>
+              <div style={{ marginTop: 10 }}>
+                <button onClick={submitReview}>Отправить</button>
+                <button onClick={() => setShowReviewForm(false)}>Отмена</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <h2>Отзывы руководителей</h2>
       {resume.reviews && resume.reviews.length > 0 ? (

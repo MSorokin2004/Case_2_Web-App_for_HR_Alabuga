@@ -58,7 +58,7 @@ function App() {
           </PrivateRoute>
         } />
         <Route path="/notifications" element={
-          <PrivateRoute allowedRoles={['candidate', 'hr']}>
+          <PrivateRoute allowedRoles={['candidate', 'hr', 'manager']}>
             <Notifications />
           </PrivateRoute>
         } />

@@ -26,10 +26,10 @@ class Resume(Base):
     candidate_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     desired_position = Column(String, nullable=False)
     salary_expectation = Column(Integer)
-    employment_type = Column(String)  # full-time, part-time, etc.
-    work_format = Column(String)      # office, remote, hybrid
+    employment_type = Column(String)
+    work_format = Column(String)
     about = Column(Text)
-    status = Column(String, default="new")  # new, reviewed, interview, etc.
+    status = Column(String, default="new")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     in_basket = Column(Boolean, default=False)
@@ -82,10 +82,10 @@ class Interview(Base):
     manager_id = Column(Integer, ForeignKey("users.id"))
     resume_id = Column(Integer, ForeignKey("resumes.id"))
     datetime = Column(DateTime, nullable=False)
-    format = Column(String)  # online, offline, phone
+    format = Column(String)
     location_or_link = Column(String)
     comment = Column(Text)
-    status = Column(String, default="scheduled")  # scheduled, completed, cancelled
+    status = Column(String, default="scheduled")
 
     candidate = relationship("User", foreign_keys=[candidate_id])
     hr = relationship("User", foreign_keys=[hr_id])
@@ -94,23 +94,25 @@ class Interview(Base):
 class Review(Base):
     __tablename__ = "reviews"
     id = Column(Integer, primary_key=True, index=True)
-    interview_id = Column(Integer, ForeignKey("interviews.id"))
-    reviewer_id = Column(Integer, ForeignKey("users.id"))
-    overall_score = Column(Integer)  # 1-5
+    resume_id = Column(Integer, ForeignKey("resumes.id"), nullable=True)
+    interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=True)
+    reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    overall_score = Column(Integer)
     strengths = Column(Text)
     weaknesses = Column(Text)
     comment = Column(Text)
-    recommendation = Column(String)  # hire, reserve, reject
+    recommendation = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     interview = relationship("Interview", backref="reviews")
+    resume = relationship("Resume", backref="reviews")
     reviewer = relationship("User")
 
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True)
-    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)      # кто отправил (HR)
-    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=False)   # кому (кандидат)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)

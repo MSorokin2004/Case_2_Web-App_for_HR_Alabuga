@@ -96,14 +96,17 @@ class ResumeOut(ResumeBase):
     status: str
     created_at: datetime
     updated_at: Optional[datetime] = None
+    in_basket: bool = False
     candidate: UserOut
     experiences: List[WorkExperienceOut] = []
     educations: List[EducationOut] = []
     documents: List[DocumentOut] = []
-    in_basket: bool = False
 
     class Config:
         from_attributes = True
+
+class ResumeDetailOut(ResumeOut):
+    reviews: List['ReviewOut'] = []
 
 # Interview schemas
 class InterviewCreate(BaseModel):
@@ -130,28 +133,28 @@ class InterviewOut(BaseModel):
         from_attributes = True
 
 class ReviewCreate(BaseModel):
-    interview_id: int
+    resume_id: int
     overall_score: int
     strengths: Optional[str] = None
     weaknesses: Optional[str] = None
     comment: Optional[str] = None
-    recommendation: str  # hire, reserve, reject
+    recommendation: str
 
 class ReviewOut(BaseModel):
     id: int
-    interview_id: int
+    resume_id: Optional[int] = None
+    interview_id: Optional[int] = None
     reviewer_id: int
     overall_score: int
-    strengths: Optional[str]
-    weaknesses: Optional[str]
-    comment: Optional[str]
+    strengths: Optional[str] = None
+    weaknesses: Optional[str] = None
+    comment: Optional[str] = None
     recommendation: str
     created_at: datetime
+    reviewer: Optional[UserOut] = None
+
     class Config:
         from_attributes = True
-
-class ResumeDetailOut(ResumeOut):
-    reviews: List[ReviewOut] = []
 
 class NotificationCreate(BaseModel):
     recipient_id: int

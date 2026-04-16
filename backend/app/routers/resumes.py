@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app import models, schemas, auth
 from app.database import get_db
 from app.routers.auth import oauth2_scheme
-from typing import List, Optional
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
@@ -17,7 +16,6 @@ def create_resume(
     user = auth.get_current_user(db, token)
     if user.role != models.UserRole.candidate:
         raise HTTPException(status_code=403, detail="Only candidates can create resumes")
-    # Check if resume already exists
     existing = db.query(models.Resume).filter(models.Resume.candidate_id == user.id).first()
     if existing:
         raise HTTPException(status_code=400, detail="Resume already exists. Update it instead.")
@@ -62,7 +60,7 @@ def update_my_resume(
 def list_resumes(
     skip: int = 0,
     limit: int = 100,
-    in_basket: Optional[bool] = None,   # <-- ДОБАВЛЯЕМ
+    in_basket: Optional[bool] = None,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
@@ -105,7 +103,6 @@ def toggle_basket(
     db.commit()
     return {"in_basket": resume.in_basket}
 
-
 @router.get("/{resume_id}/detail", response_model=schemas.ResumeDetailOut)
 def get_resume_detail(
     resume_id: int,
@@ -115,18 +112,8 @@ def get_resume_detail(
     user = auth.get_current_user(db, token)
     if user.role not in [models.UserRole.hr, models.UserRole.manager]:
         raise HTTPException(status_code=403, detail="Not authorized")
-    
     resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
-    
-    # Получаем все отзывы, оставленные руководителями по кандидату
-    reviews = db.query(models.Review).join(models.Interview).filter(
-        models.Interview.candidate_id == resume.candidate_id
-    ).all()
-    
-    # Формируем ответ
-    result = schemas.ResumeDetailOut.from_orm(resume)
-    result.reviews = [schemas.ReviewOut.from_orm(r) for r in reviews]
-    return result
-
+    # Примечание: отзывы теперь отдельным эндпоинтом, здесь не подгружаем
+    return resume
