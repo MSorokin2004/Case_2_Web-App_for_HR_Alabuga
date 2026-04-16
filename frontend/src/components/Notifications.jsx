@@ -31,6 +31,17 @@ const Notifications = () => {
     }
   };
 
+  const respondToInterview = async (interviewId, response, notificationId) => {
+    try {
+      await api.post(`/interviews/${interviewId}/respond?response=${response}`);
+      await api.post(`/notifications/${notificationId}/read`);
+      alert('Ответ отправлен');
+      fetchNotifications();
+    } catch (err) {
+      alert('Ошибка');
+    }
+  };
+
   const role = localStorage.getItem('role');
 
   if (loading) return <div>Загрузка...</div>;
@@ -54,13 +65,19 @@ const Notifications = () => {
             <p>{n.message}</p>
             <small>
               {role === 'candidate' && n.sender && `От: ${n.sender.full_name}`}
-              {role === 'hr' && n.recipient && `Кому: ${n.recipient.full_name}`}
+              {(role === 'hr' || role === 'manager') && n.sender && `От: ${n.sender.full_name}`}
               {' | '}
               {new Date(n.created_at).toLocaleString()}
             </small>
             {role === 'candidate' && !n.is_read && (
               <div>
                 <button onClick={() => markAsRead(n.id)}>Отметить прочитанным</button>
+              </div>
+            )}
+            {role === 'candidate' && n.interview_id && n.title.includes('Приглашение') && !n.is_read && (
+              <div style={{ marginTop: 5 }}>
+                <button onClick={() => respondToInterview(n.interview_id, 'accept', n.id)}>Принять</button>
+                <button onClick={() => respondToInterview(n.interview_id, 'decline', n.id)}>Отклонить</button>
               </div>
             )}
           </div>

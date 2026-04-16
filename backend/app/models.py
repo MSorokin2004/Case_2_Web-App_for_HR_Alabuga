@@ -117,6 +117,21 @@ class Notification(Base):
     message = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=True)
 
     sender = relationship("User", foreign_keys=[sender_id])
     recipient = relationship("User", foreign_keys=[recipient_id])
+    interview = relationship("Interview") 
+
+
+
+def create_notification_direct(db, sender_id, recipient_id, title, message, interview_id=None):
+    notif = models.Notification(
+        sender_id=sender_id,
+        recipient_id=recipient_id,
+        title=title,
+        message=message,
+        interview_id=interview_id
+    )
+    db.add(notif)
+    db.commit()

@@ -16,7 +16,6 @@ def create_notification(
     user = auth.get_current_user(db, token)
     if user.role != models.UserRole.hr:
         raise HTTPException(status_code=403, detail="Only HR can send notifications")
-    # Проверим, что получатель существует и является кандидатом
     recipient = db.query(models.User).filter(models.User.id == notif.recipient_id).first()
     if not recipient or recipient.role != models.UserRole.candidate:
         raise HTTPException(status_code=400, detail="Recipient must be a candidate")
@@ -37,15 +36,20 @@ def get_my_notifications(
     db: Session = Depends(get_db)
 ):
     user = auth.get_current_user(db, token)
-    if user.role == models.UserRole.candidate:
-        # Кандидат видит только свои входящие
+    role_value = user.role.value
+
+    if role_value == "candidate":
         notifs = db.query(models.Notification).filter(
             models.Notification.recipient_id == user.id
         ).order_by(models.Notification.created_at.desc()).all()
-    elif user.role == models.UserRole.hr:
-        # HR видит отправленные им уведомления
+    elif role_value == "hr":
+        # HR теперь видит входящие уведомления (адресованные ему)
         notifs = db.query(models.Notification).filter(
-            models.Notification.sender_id == user.id
+            models.Notification.recipient_id == user.id
+        ).order_by(models.Notification.created_at.desc()).all()
+    elif role_value == "manager":
+        notifs = db.query(models.Notification).filter(
+            models.Notification.recipient_id == user.id
         ).order_by(models.Notification.created_at.desc()).all()
     else:
         notifs = []
@@ -62,7 +66,7 @@ def mark_as_read(
     if not notif:
         raise HTTPException(status_code=404, detail="Notification not found")
     if user.role == models.UserRole.candidate and notif.recipient_id != user.id:
-        raise HTTPException(status_code=403)
+        raise HTTPException(status_code=403, detail="Not allowed")
     notif.is_read = True
     db.commit()
     return {"status": "ok"}

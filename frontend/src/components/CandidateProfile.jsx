@@ -81,6 +81,16 @@ const CandidateProfile = () => {
     }
   };
 
+  const handleDeleteDocument = async (docId) => {
+    if (!window.confirm('Удалить документ?')) return;
+    try {
+      await api.delete(`/files/${docId}`);
+      fetchResume(); // обновить список документов
+    } catch (err) {
+      alert('Ошибка удаления');
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <h2>Моё резюме</h2>
@@ -109,6 +119,8 @@ const CandidateProfile = () => {
                 <a href={`http://localhost:8000/files/download/${doc.id}`} target="_blank" rel="noreferrer">Открыть</a>
                 {' | '}
                 <a href={`http://localhost:8000/files/download/${doc.id}?download=1`} target="_blank" rel="noreferrer">Скачать</a>
+                {' | '}
+                <button onClick={() => handleDeleteDocument(doc.id)}>Удалить</button>
               </li>
             ))}
           </ul>

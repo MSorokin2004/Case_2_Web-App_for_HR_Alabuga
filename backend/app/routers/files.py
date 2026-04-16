@@ -72,3 +72,22 @@ async def download_file(
         filename=document.filename,
         content_disposition_type=disposition
     )
+
+@router.delete("/{document_id}")
+def delete_document(
+    document_id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    document = db.query(models.Document).filter(models.Document.id == document_id).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    resume = db.query(models.Resume).filter(models.Resume.id == document.resume_id).first()
+    if resume.candidate_id != user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    if os.path.exists(document.file_path):
+        os.remove(document.file_path)
+    db.delete(document)
+    db.commit()
+    return {"status": "ok"}

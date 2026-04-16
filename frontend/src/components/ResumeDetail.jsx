@@ -18,6 +18,16 @@ const ResumeDetail = () => {
     comment: '',
     recommendation: 'рекомендую'
   });
+  const [showInterviewForm, setShowInterviewForm] = useState(false);
+  const [interviewForm, setInterviewForm] = useState({
+    manager_id: '',
+    datetime: '',
+    format: 'online',
+    location_or_link: '',
+    comment: ''
+  });
+  const [managers, setManagers] = useState([]);
+  const [interviews, setInterviews] = useState([]);
 
   useEffect(() => {
     fetchResumeDetail();
@@ -30,11 +40,33 @@ const ResumeDetail = () => {
         api.get(`/reviews/resume/${id}`)
       ]);
       setResume({ ...resumeResp.data, reviews: reviewsResp.data });
+      fetchInterviews();
+      if (localStorage.getItem('role') === 'hr') {
+        fetchManagers();
+      }
     } catch (err) {
       alert('Не удалось загрузить резюме');
       navigate('/dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInterviews = async () => {
+    try {
+      const resp = await api.get(`/interviews/?resume_id=${id}`);
+      setInterviews(resp.data);
+    } catch (err) {
+      console.error('Ошибка загрузки собеседований');
+    }
+  };
+
+  const fetchManagers = async () => {
+    try {
+      const resp = await api.get('/users?role=manager');
+      setManagers(resp.data);
+    } catch (err) {
+      console.error('Не удалось загрузить руководителей');
     }
   };
 
@@ -70,11 +102,40 @@ const ResumeDetail = () => {
       });
       alert('Отзыв отправлен');
       setShowReviewForm(false);
-      // Обновить отзывы
       const reviewsResp = await api.get(`/reviews/resume/${id}`);
       setResume({ ...resume, reviews: reviewsResp.data });
     } catch (err) {
       alert('Ошибка при отправке отзыва');
+    }
+  };
+
+  const createInterview = async () => {
+    try {
+      await api.post('/interviews/', {
+        candidate_id: resume.candidate.id,
+        manager_id: parseInt(interviewForm.manager_id),
+        resume_id: resume.id,
+        datetime: interviewForm.datetime,
+        format: interviewForm.format,
+        location_or_link: interviewForm.location_or_link,
+        comment: interviewForm.comment
+      });
+      alert('Собеседование создано');
+      setShowInterviewForm(false);
+      fetchInterviews();
+    } catch (err) {
+      alert('Ошибка создания собеседования');
+    }
+  };
+
+  const cancelInterview = async (interviewId) => {
+    if (!window.confirm('Отменить собеседование?')) return;
+    try {
+      await api.post(`/interviews/${interviewId}/cancel`);
+      alert('Собеседование отменено');
+      fetchInterviews();
+    } catch (err) {
+      alert('Ошибка отмены');
     }
   };
 
@@ -111,31 +172,64 @@ const ResumeDetail = () => {
       </ul>
 
       {localStorage.getItem('role') === 'hr' && (
-        <div style={{ marginTop: 20 }}>
-          <button onClick={() => setShowInviteForm(!showInviteForm)}>
-            Отправить приглашение
-          </button>
-          {showInviteForm && (
-            <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
-              <input
-                type="text"
-                placeholder="Заголовок"
-                value={inviteTitle}
-                onChange={(e) => setInviteTitle(e.target.value)}
-                style={{ width: '100%', marginBottom: 5 }}
-              />
-              <textarea
-                placeholder="Сообщение"
-                value={inviteMessage}
-                onChange={(e) => setInviteMessage(e.target.value)}
-                rows={3}
-                style={{ width: '100%', marginBottom: 5 }}
-              />
-              <button onClick={sendInvitation}>Отправить</button>
-              <button onClick={() => setShowInviteForm(false)}>Отмена</button>
-            </div>
-          )}
-        </div>
+        <>
+          <div style={{ marginTop: 20 }}>
+            <button onClick={() => setShowInviteForm(!showInviteForm)}>
+              Отправить приглашение
+            </button>
+            {showInviteForm && (
+              <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+                <input
+                  type="text"
+                  placeholder="Заголовок"
+                  value={inviteTitle}
+                  onChange={(e) => setInviteTitle(e.target.value)}
+                  style={{ width: '100%', marginBottom: 5 }}
+                />
+                <textarea
+                  placeholder="Сообщение"
+                  value={inviteMessage}
+                  onChange={(e) => setInviteMessage(e.target.value)}
+                  rows={3}
+                  style={{ width: '100%', marginBottom: 5 }}
+                />
+                <button onClick={sendInvitation}>Отправить</button>
+                <button onClick={() => setShowInviteForm(false)}>Отмена</button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <button onClick={() => { setShowInterviewForm(!showInterviewForm); if (!showInterviewForm) fetchManagers(); }}>
+              Назначить собеседование
+            </button>
+            {showInterviewForm && (
+              <div style={{ border: '1px solid #ccc', padding: 10, marginTop: 10 }}>
+                <label>Руководитель:</label>
+                <select value={interviewForm.manager_id} onChange={(e) => setInterviewForm({...interviewForm, manager_id: e.target.value})}>
+                  <option value="">Выберите</option>
+                  {managers.map(m => <option key={m.id} value={m.id}>{m.full_name}</option>)}
+                </select>
+                <label>Дата и время:</label>
+                <input type="datetime-local" value={interviewForm.datetime} onChange={(e) => setInterviewForm({...interviewForm, datetime: e.target.value})} />
+                <label>Формат:</label>
+                <select value={interviewForm.format} onChange={(e) => setInterviewForm({...interviewForm, format: e.target.value})}>
+                  <option value="online">Онлайн</option>
+                  <option value="offline">Офлайн</option>
+                  <option value="phone">Телефон</option>
+                </select>
+                <label>Ссылка/Место:</label>
+                <input value={interviewForm.location_or_link} onChange={(e) => setInterviewForm({...interviewForm, location_or_link: e.target.value})} />
+                <label>Комментарий:</label>
+                <textarea value={interviewForm.comment} onChange={(e) => setInterviewForm({...interviewForm, comment: e.target.value})} />
+                <div style={{ marginTop: 10 }}>
+                  <button onClick={createInterview}>Создать</button>
+                  <button onClick={() => setShowInterviewForm(false)}>Отмена</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {localStorage.getItem('role') === 'manager' && (
@@ -185,6 +279,20 @@ const ResumeDetail = () => {
           )}
         </div>
       )}
+
+      <h2>Собеседования</h2>
+      {interviews.length === 0 && <p>Нет назначенных собеседований</p>}
+      {interviews.map(iv => (
+        <div key={iv.id} style={{ border: '1px solid #ddd', margin: 5, padding: 10 }}>
+          <p><strong>Дата:</strong> {new Date(iv.datetime).toLocaleString()}</p>
+          <p><strong>Формат:</strong> {iv.format} {iv.location_or_link && `(${iv.location_or_link})`}</p>
+          <p><strong>Статус:</strong> {iv.status}</p>
+          {iv.comment && <p><strong>Комментарий:</strong> {iv.comment}</p>}
+          {(localStorage.getItem('role') === 'hr' || localStorage.getItem('role') === 'manager') && iv.status === 'scheduled' && (
+            <button onClick={() => cancelInterview(iv.id)}>Отменить собеседование</button>
+          )}
+        </div>
+      ))}
 
       <h2>Отзывы руководителей</h2>
       {resume.reviews && resume.reviews.length > 0 ? (

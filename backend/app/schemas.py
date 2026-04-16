@@ -108,7 +108,6 @@ class ResumeOut(ResumeBase):
 class ResumeDetailOut(ResumeOut):
     reviews: List['ReviewOut'] = []
 
-# Interview schemas
 class InterviewCreate(BaseModel):
     candidate_id: int
     manager_id: int
@@ -169,7 +168,9 @@ class NotificationOut(BaseModel):
     message: str
     is_read: bool
     created_at: datetime
+    interview_id: Optional[int] = None
     sender: Optional[UserOut] = None
+    recipient: Optional[UserOut] = None   
 
     class Config:
         from_attributes = True
