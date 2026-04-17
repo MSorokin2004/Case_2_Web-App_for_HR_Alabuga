@@ -6,10 +6,44 @@ import HRDashboard from './components/HRDashboard';
 import ResumeDetail from './components/ResumeDetail';
 import Notifications from './components/Notifications';
 import PrivateRoute from './components/PrivateRoute';
+import api from './api';
+import React, { useState, useEffect } from 'react';
+
+
+
 
 function App() {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = async () => {
+  const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const resp = await api.get('/notifications/unread-count');
+      setUnreadCount(resp.data.count);
+    } catch (err) {
+      console.error('Ошибка получения количества непрочитанных уведомлений');
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    
+    // Слушатель для мгновенного обновления счётчика
+    const handleUnreadUpdate = () => {
+      fetchUnreadCount();
+    };
+    window.addEventListener('unread-updated', handleUnreadUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('unread-updated', handleUnreadUpdate);
+    };
+  }, [token]);
+
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -32,7 +66,10 @@ function App() {
               <>
                 {role === 'candidate' && <Link to="/profile" className="nav-link">Моё резюме</Link>}
                 {(role === 'hr' || role === 'manager') && <Link to="/dashboard" className="nav-link">Кандидаты</Link>}
-                <Link to="/notifications" className="nav-link">Уведомления</Link>
+                    <Link to="/notifications" className="nav-link">
+                      Уведомления
+                      {unreadCount > 0 && <span className="unread-indicator">{unreadCount}</span>}
+                    </Link>
                 <button onClick={handleLogout} className="nav-link logout-btn">Выход</button>
               </>
             )}

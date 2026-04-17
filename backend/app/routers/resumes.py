@@ -61,15 +61,33 @@ def list_resumes(
     skip: int = 0,
     limit: int = 100,
     in_basket: Optional[bool] = None,
+    desired_position: Optional[str] = None,
+    status: Optional[str] = None,
+    min_salary: Optional[int] = None,
+    max_salary: Optional[int] = None,
+    work_format: Optional[str] = None,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
     user = auth.get_current_user(db, token)
     if user.role not in [models.UserRole.hr, models.UserRole.manager]:
         raise HTTPException(status_code=403, detail="Not authorized")
+    
     query = db.query(models.Resume)
+    
     if in_basket is not None:
         query = query.filter(models.Resume.in_basket == in_basket)
+    if desired_position:
+        query = query.filter(models.Resume.desired_position.ilike(f"%{desired_position}%"))
+    if status:
+        query = query.filter(models.Resume.status == status)
+    if min_salary is not None:
+        query = query.filter(models.Resume.salary_expectation >= min_salary)
+    if max_salary is not None:
+        query = query.filter(models.Resume.salary_expectation <= max_salary)
+    if work_format:
+        query = query.filter(models.Resume.work_format.ilike(f"%{work_format}%"))
+    
     resumes = query.offset(skip).limit(limit).all()
     return resumes
 
@@ -117,3 +135,27 @@ def get_resume_detail(
         raise HTTPException(status_code=404, detail="Resume not found")
     # Примечание: отзывы теперь отдельным эндпоинтом, здесь не подгружаем
     return resume
+
+
+@router.put("/{resume_id}/status")
+def update_resume_status(
+    resume_id: int,
+    status: str,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    if user.role not in [models.UserRole.hr, models.UserRole.manager]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    allowed_statuses = [
+        "В поиске", "На рассмотрении", "Собеседование назначено",
+        "Собеседование пройдено", "Оффер", "Принят", "Отказ", "Резерв"
+    ]
+    if status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    resume.status = status
+    db.commit()
+    return {"status": resume.status}

@@ -26,6 +26,7 @@ const Notifications = () => {
       setNotifications(notifs =>
         notifs.map(n => n.id === id ? { ...n, is_read: true } : n)
       );
+      window.dispatchEvent(new Event('unread-updated'));
     } catch (err) {
       alert('Ошибка');
     }
@@ -37,6 +38,7 @@ const Notifications = () => {
       await api.post(`/notifications/${notificationId}/read`);
       alert('Ответ отправлен');
       fetchNotifications();
+      window.dispatchEvent(new Event('unread-updated'));
     } catch (err) {
       alert('Ошибка');
     }
@@ -67,11 +69,11 @@ const Notifications = () => {
                 </span>
                 <span>{new Date(n.created_at).toLocaleString()}</span>
               </div>
-              {role === 'candidate' && !n.is_read && (
-                <div className="notification-actions">
-                  <button onClick={() => markAsRead(n.id)} className="btn-outline">Отметить прочитанным</button>
-                </div>
-              )}
+                  {(role === 'candidate' || role === 'hr' || role === 'manager') && !n.is_read && (
+                    <div className="notification-actions">
+                      <button onClick={() => markAsRead(n.id)} className="btn-outline">Отметить прочитанным</button>
+                    </div>
+                  )}
               {role === 'candidate' && n.interview_id && n.title.includes('Приглашение') && !n.is_read && (
                 <div className="notification-actions">
                   <button onClick={() => respondToInterview(n.interview_id, 'accept', n.id)} className="btn-success">Принять</button>

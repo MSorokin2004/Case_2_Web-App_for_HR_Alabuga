@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 from enum import Enum
+from pydantic import BaseModel, EmailStr, Field
 
 class UserRole(str, Enum):
     candidate = "candidate"
@@ -83,6 +84,16 @@ class ResumeBase(BaseModel):
     employment_type: Optional[str] = None
     work_format: Optional[str] = None
     about: Optional[str] = None
+    full_name: Optional[str] = None
+    contacts: Optional[str] = None
+    experience: Optional[str] = None
+    education: Optional[str] = None
+    skills: Optional[str] = None
+    competencies: Optional[str] = None
+    languages: Optional[str] = None
+    work_places: Optional[str] = None
+    projects: Optional[str] = None
+    certificates: Optional[str] = None
 
 class ResumeCreate(ResumeBase):
     pass
@@ -133,7 +144,7 @@ class InterviewOut(BaseModel):
 
 class ReviewCreate(BaseModel):
     resume_id: int
-    overall_score: int
+    overall_score: int = Field(..., ge=1, le=10)
     strengths: Optional[str] = None
     weaknesses: Optional[str] = None
     comment: Optional[str] = None

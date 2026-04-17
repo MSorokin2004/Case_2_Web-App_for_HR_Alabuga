@@ -31,6 +31,18 @@ def create_review(
     )
     db.add(db_review)
     db.commit()
+
+    resume = db.query(models.Resume).filter(models.Resume.id == review.resume_id).first()
+    
+    if resume:
+        if review.recommendation == "рекомендую":
+            resume.status = "Рекомендован"
+        elif review.recommendation == "отказ":
+            resume.status = "Отказ"
+        elif review.recommendation == "резерв":
+            resume.status = "Резерв"
+        db.commit()
+        
     db.refresh(db_review)
     return db_review
 

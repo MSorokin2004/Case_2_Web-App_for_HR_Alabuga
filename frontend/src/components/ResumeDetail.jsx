@@ -158,6 +158,31 @@ const ResumeDetail = () => {
   if (loading) return <div className="loading">Загрузка...</div>;
   if (!resume) return <div className="error">Резюме не найдено</div>;
 
+const handleStatusChange = async (newStatus) => {
+  try {
+    await api.put(`/resumes/${id}/status?status=${encodeURIComponent(newStatus)}`);
+    alert(`Статус изменён на "${newStatus}"`);
+    fetchResumeDetail();
+  } catch (err) {
+    alert('Ошибка изменения статуса');
+  }
+};
+
+const handleSendOffer = async () => {
+  const msg = prompt('Введите текст оффера (необязательно)', 'Вам направлен оффер. Пожалуйста, свяжитесь с HR для обсуждения деталей.');
+  if (msg === null) return;
+  try {
+    await api.post('/notifications/offer', {
+      resume_id: id,
+      message: msg
+    });
+    alert('Оффер отправлен');
+    fetchResumeDetail();
+  } catch (err) {
+    alert('Ошибка отправки оффера');
+  }
+};
+
   return (
     <div className="resume-detail-container">
       <button onClick={() => navigate('/dashboard')} className="btn-back">← Назад к списку</button>
@@ -275,6 +300,17 @@ const ResumeDetail = () => {
             <button onClick={() => setShowRequestForm(!showRequestForm)} className="btn-secondary">
               Запросить собеседование
             </button>
+            <div className="action-buttons" style={{ marginTop: '16px' }}>
+              <button onClick={() => handleStatusChange('Собеседование пройдено')} className="btn-secondary">
+                Собеседование пройдено
+              </button>
+              <button onClick={handleSendOffer} className="btn-secondary">
+                Отправить оффер
+              </button>
+              <button onClick={() => handleStatusChange('Принят')} className="btn-success">
+                Принять на работу
+              </button>
+            </div>
           </div>
 
           {showReviewForm && (
@@ -283,7 +319,7 @@ const ResumeDetail = () => {
               <input
                 type="number"
                 min="1"
-                max="5"
+                max="10"
                 value={reviewForm.overall_score}
                 onChange={(e) => setReviewForm({ ...reviewForm, overall_score: parseInt(e.target.value) })}
                 className="form-input"

@@ -4,6 +4,11 @@ from typing import List
 from app import models, schemas, auth
 from app.database import get_db
 from app.routers.auth import oauth2_scheme
+from pydantic import BaseModel
+
+class OfferRequest(BaseModel):
+    resume_id: int
+    message: str = "Вам направлен оффер. Пожалуйста, свяжитесь с HR для обсуждения деталей."
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -65,8 +70,52 @@ def mark_as_read(
     notif = db.query(models.Notification).filter(models.Notification.id == notif_id).first()
     if not notif:
         raise HTTPException(status_code=404, detail="Notification not found")
-    if user.role == models.UserRole.candidate and notif.recipient_id != user.id:
-        raise HTTPException(status_code=403, detail="Not allowed")
+    # Только получатель может отметить прочитанным
+    if notif.recipient_id != user.id:
+        raise HTTPException(status_code=403, detail="Not your notification")
     notif.is_read = True
     db.commit()
     return {"status": "ok"}
+
+@router.get("/unread-count")
+def get_unread_count(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    count = db.query(models.Notification).filter(
+        models.Notification.recipient_id == user.id,
+        models.Notification.is_read == False
+    ).count()
+    return {"count": count}
+
+@router.post("/offer")
+def send_offer(
+    data: OfferRequest,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user(db, token)
+    if user.role not in [models.UserRole.hr, models.UserRole.manager]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    resume = db.query(models.Resume).filter(models.Resume.id == data.resume_id).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    candidate = db.query(models.User).filter(models.User.id == resume.candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    # Создаём уведомление
+    notif = models.Notification(
+        sender_id=user.id,
+        recipient_id=candidate.id,
+        title="Оффер",
+        message=data.message
+    )
+    db.add(notif)
+    
+    # Меняем статус резюме
+    resume.status = "Оффер"
+    db.commit()
+    db.refresh(notif)
+    return {"status": "success", "notification_id": notif.id}

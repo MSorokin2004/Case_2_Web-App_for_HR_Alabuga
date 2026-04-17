@@ -9,7 +9,17 @@ const CandidateProfile = () => {
     salary_expectation: '',
     employment_type: '',
     work_format: '',
-    about: ''
+    about: '',
+    full_name: '',
+    contacts: '',
+    experience: '',
+    education: '',
+    skills: '',
+    competencies: '',
+    languages: '',
+    work_places: '',
+    projects: '',
+    certificates: ''
   });
   const [file, setFile] = useState(null);
 
@@ -32,7 +42,17 @@ const CandidateProfile = () => {
         salary_expectation: resp.data.salary_expectation || '',
         employment_type: resp.data.employment_type || '',
         work_format: resp.data.work_format || '',
-        about: resp.data.about || ''
+        about: resp.data.about || '',
+        full_name: resp.data.full_name || '',
+        contacts: resp.data.contacts || '',
+        experience: resp.data.experience || '',
+        education: resp.data.education || '',
+        skills: resp.data.skills || '',
+        competencies: resp.data.competencies || '',
+        languages: resp.data.languages || '',
+        work_places: resp.data.work_places || '',
+        projects: resp.data.projects || '',
+        certificates: resp.data.certificates || ''
       });
     } catch (err) {
       // резюме ещё нет
@@ -60,6 +80,7 @@ const CandidateProfile = () => {
         setResume(resp.data);
       }
       fetchResume();
+      alert('Резюме сохранено');
     } catch (error) {
       alert('Ошибка сохранения резюме');
     }
@@ -85,7 +106,7 @@ const CandidateProfile = () => {
     if (!window.confirm('Удалить документ?')) return;
     try {
       await api.delete(`/files/${docId}`);
-      fetchResume(); // обновить список документов
+      fetchResume();
     } catch (err) {
       alert('Ошибка удаления');
     }
@@ -95,25 +116,76 @@ const CandidateProfile = () => {
     <div className="profile-container">
       <h2 className="page-title">Моё резюме</h2>
       
+      {resume && (
+        <div className="status-banner">
+          Текущий статус: <strong>{resume.status}</strong>
+        </div>
+      )}
+
       <div className="resume-section">
         <h3 className="section-title">Основная информация</h3>
         <form onSubmit={handleSubmit} className="profile-form">
           <div className="form-row">
-            <input name="desired_position" placeholder="Желаемая должность" value={form.desired_position} onChange={handleChange} required className="form-input" />
+            <label>ФИО</label>
+            <input name="full_name" placeholder="Иванов Иван Иванович" value={form.full_name} onChange={handleChange} className="form-input" />
           </div>
           <div className="form-row">
-            <input name="salary_expectation" type="number" placeholder="Зарплатные ожидания" value={form.salary_expectation} onChange={handleChange} className="form-input" />
+            <label>Контакты</label>
+            <textarea name="contacts" placeholder="Телефон, email, Telegram..." value={form.contacts} onChange={handleChange} className="form-textarea" rows="2" />
           </div>
           <div className="form-row">
-            <input name="employment_type" placeholder="Тип занятости" value={form.employment_type} onChange={handleChange} className="form-input" />
+            <label>Желаемая должность *</label>
+            <input name="desired_position" placeholder="Например, Frontend-разработчик" value={form.desired_position} onChange={handleChange} required className="form-input" />
           </div>
           <div className="form-row">
-            <input name="work_format" placeholder="Формат работы" value={form.work_format} onChange={handleChange} className="form-input" />
+            <label>Зарплатные ожидания</label>
+            <input name="salary_expectation" type="number" placeholder="Сумма в рублях" value={form.salary_expectation} onChange={handleChange} className="form-input" />
           </div>
           <div className="form-row">
-            <textarea name="about" placeholder="О себе" value={form.about} onChange={handleChange} className="form-textarea" />
+            <label>График работы</label>
+            <input name="employment_type" placeholder="Полная занятость, частичная..." value={form.employment_type} onChange={handleChange} className="form-input" />
           </div>
-          <button type="submit" className="btn-primary">Сохранить</button>
+          <div className="form-row">
+            <label>Формат работы</label>
+            <input name="work_format" placeholder="Офис, гибрид, удалённо" value={form.work_format} onChange={handleChange} className="form-input" />
+          </div>
+          <div className="form-row">
+            <label>Опыт работы</label>
+            <textarea name="experience" placeholder="Опишите ваш опыт работы" value={form.experience} onChange={handleChange} className="form-textarea" rows="4" />
+          </div>
+          <div className="form-row">
+            <label>Образование</label>
+            <textarea name="education" placeholder="Учебные заведения, специальность" value={form.education} onChange={handleChange} className="form-textarea" rows="3" />
+          </div>
+          <div className="form-row">
+            <label>Навыки</label>
+            <textarea name="skills" placeholder="Перечислите профессиональные навыки" value={form.skills} onChange={handleChange} className="form-textarea" rows="2" />
+          </div>
+          <div className="form-row">
+            <label>Компетенции</label>
+            <textarea name="competencies" placeholder="Ключевые компетенции" value={form.competencies} onChange={handleChange} className="form-textarea" rows="2" />
+          </div>
+          <div className="form-row">
+            <label>Владение языками</label>
+            <textarea name="languages" placeholder="Например, Английский B2, Немецкий A1" value={form.languages} onChange={handleChange} className="form-textarea" rows="2" />
+          </div>
+          <div className="form-row">
+            <label>Места работы (предпочтения)</label>
+            <input name="work_places" placeholder="Город, готовность к переезду" value={form.work_places} onChange={handleChange} className="form-input" />
+          </div>
+          <div className="form-row">
+            <label>Проекты</label>
+            <textarea name="projects" placeholder="Опишите реализованные проекты" value={form.projects} onChange={handleChange} className="form-textarea" rows="3" />
+          </div>
+          <div className="form-row">
+            <label>Сертификаты</label>
+            <textarea name="certificates" placeholder="Названия и даты получения" value={form.certificates} onChange={handleChange} className="form-textarea" rows="2" />
+          </div>
+          <div className="form-row">
+            <label>О себе (дополнительно)</label>
+            <textarea name="about" placeholder="Любая дополнительная информация" value={form.about} onChange={handleChange} className="form-textarea" rows="3" />
+          </div>
+          <button type="submit" className="btn-primary">Сохранить резюме</button>
         </form>
       </div>
 

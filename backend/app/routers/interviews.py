@@ -17,6 +17,7 @@ def create_notification(db: Session, sender_id: int, recipient_id: int, title: s
     db.add(notif)
     db.commit()
 
+    
 @router.post("/{interview_id}/respond")
 def respond_to_interview(
     interview_id: int,
@@ -43,15 +44,26 @@ def respond_to_interview(
         interview.status = "accepted"
         title = "Кандидат принял приглашение"
         message = f"Кандидат {user.full_name} принял приглашение на собеседование. {details}"
+        db.commit()
+        # Обновляем статус резюме
+        resume = db.query(models.Resume).filter(models.Resume.id == interview.resume_id).first()
+        if resume:
+            resume.status = "Собеседование назначено"
+            db.commit()
     elif response == "decline":
         interview.status = "declined"
         title = "Кандидат отклонил приглашение"
         message = f"Кандидат {user.full_name} отклонил приглашение на собеседование. {details}"
+        db.commit()
+        # Возвращаем статус "В поиске"
+        resume = db.query(models.Resume).filter(models.Resume.id == interview.resume_id).first()
+        if resume:
+            resume.status = "В поиске"
+            db.commit()
     else:
         raise HTTPException(status_code=400, detail="Invalid response")
 
-    db.commit()
-
+    # Уведомляем HR и руководителя
     hr = db.query(models.User).filter(models.User.id == interview.hr_id).first()
     if hr:
         create_notification(db, user.id, hr.id, title, message, interview_id)
@@ -102,6 +114,19 @@ def create_interview(
         f"Вы назначены собеседующим для кандидата {candidate.full_name} на {interview.datetime}",
         db_interview.id
     )
+
+    create_notification(
+        db, user.id, user.id,
+        "Собеседование назначено",
+        f"Вы назначили собеседование с кандидатом {candidate.full_name} на {interview.datetime}. Формат: {interview.format}. Руководитель: {manager.full_name}",
+        db_interview.id
+    )
+
+    resume = db.query(models.Resume).filter(models.Resume.id == interview.resume_id).first()
+    if resume:
+        resume.status = "На рассмотрении"
+        db.commit()
+
     return db_interview
 
 
@@ -128,6 +153,7 @@ def cancel_interview(
     db.commit()
 
     candidate = db.query(models.User).filter(models.User.id == interview.candidate_id).first()
+
     if candidate:
         create_notification(
             db, user.id, candidate.id,
@@ -185,4 +211,10 @@ def request_interview(
     message = f"Руководитель {user.full_name} запросил собеседование с кандидатом {candidate.full_name} (резюме ID {resume.id}). Комментарий: {request.comment or 'нет'}"
     for hr in hrs:
         create_notification(db, user.id, hr.id, title, message, None)
+
+    resume = db.query(models.Resume).filter(models.Resume.id == request.resume_id).first()
+    if resume:
+        resume.status = "Рекомендован"
+        db.commit()
+        
     return {"status": "request sent"}

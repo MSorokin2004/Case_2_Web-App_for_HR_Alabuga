@@ -29,10 +29,22 @@ class Resume(Base):
     employment_type = Column(String)
     work_format = Column(String)
     about = Column(Text)
-    status = Column(String, default="new")
+    status = Column(String, default="В поиске")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     in_basket = Column(Boolean, default=False)
+
+    # Новые поля
+    full_name = Column(String, nullable=True)                # ФИО (можно дублировать из User, но для независимости)
+    contacts = Column(Text, nullable=True)                   # Контакты (телефон, email и т.д.)
+    experience = Column(Text, nullable=True)                 # Опыт работы (текстовое описание)
+    education = Column(Text, nullable=True)                  # Образование
+    skills = Column(Text, nullable=True)                     # Навыки (перечисление)
+    competencies = Column(Text, nullable=True)               # Компетенции
+    languages = Column(Text, nullable=True)                  # Владение языками
+    work_places = Column(Text, nullable=True)                # Места работы (опционально)
+    projects = Column(Text, nullable=True)                   # Проекты
+    certificates = Column(Text, nullable=True)               # Сертификаты
 
     candidate = relationship("User", backref="resumes")
     documents = relationship("Document", back_populates="resume")
