@@ -70,7 +70,7 @@ const HRDashboard = () => {
       <div className="dashboard-header">
         <h2 className="dashboard-title">Кандидаты</h2>
         <button onClick={handleToggleBasketFilter} className="btn-secondary">
-          {showBasketOnly ? 'Показать все' : 'Показать только корзину'}
+          {showBasketOnly ? 'Показать все' : 'Показать только кандидатов'}
         </button>
       </div>
 

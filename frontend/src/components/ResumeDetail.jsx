@@ -77,7 +77,7 @@ const ResumeDetail = () => {
       const resp = await api.post(`/resumes/${id}/basket`);
       setResume({ ...resume, in_basket: resp.data.in_basket });
     } catch (err) {
-      alert('Ошибка при изменении корзины');
+      alert('Ошибка при изменении кандидатов');
     }
   };
 
@@ -191,7 +191,7 @@ const handleSendOffer = async () => {
         <h1 className="resume-candidate-name">{resume.candidate.full_name}</h1>
         <div className="resume-actions">
           <button onClick={handleToggleBasket} className={`btn-basket ${resume.in_basket ? 'active' : ''}`}>
-            {resume.in_basket ? 'Убрать из корзины' : 'В корзину'}
+            {resume.in_basket ? 'Убрать из кандидатов' : 'В кандидаты'}
           </button>
         </div>
       </div>
